@@ -1,4 +1,5 @@
 import { defineStore} from "pinia";
+import router from "@/router/index.ts";
 
 export const useBattleStore = defineStore("battle", {
     state: () => ({
@@ -8,7 +9,8 @@ export const useBattleStore = defineStore("battle", {
         heroBStats: null,
         heroACurrentHP: null,
         heroBCurrentHP: null,
-        battleText: null
+        battleText: null,
+        isBattleDone: false
     }),
     getters: {
         getHeroA(state) {
@@ -37,6 +39,9 @@ export const useBattleStore = defineStore("battle", {
         },
         getBattleText(state) {
             return state.battleText
+        },
+        getIsBattleDone(state) {
+            return state.isBattleDone
         }
     },
 
@@ -72,25 +77,58 @@ export const useBattleStore = defineStore("battle", {
             this.battleText = "Le combat peut commencer !";
         },
         startBattle() {
+            if (this.isBattleDone) return
+
             const heroASpeed = this.heroAStats.speed
             const heroBSpeed = this.heroBStats.speed
-
-            if (heroASpeed > heroBSpeed) {
-                this.battleText = `${this.heroA.name} attaque en premier !`
-                const dmg = Math.max(1, this.heroAStats.attack - (this.heroBStats.defense / 2))
-                this.heroBCurrentHP = Math.max(0, this.heroBCurrentHP - dmg)
-                this.battleText += ` ${this.heroA.name} inflige ${dmg} points de dégâts à ${this.heroB.name}.`
-            } else if (heroBSpeed > heroASpeed) {
-                this.battleText = `${this.heroB.name} attaque en premier !`
-                const dmg = Math.max(1, this.heroBStats.attack - (this.heroAStats.defense / 2))
-                this.heroACurrentHP = Math.max(0, this.heroACurrentHP - dmg)
-                this.battleText += ` ${this.heroB.name} inflige ${dmg} points de dégâts à ${this.heroA.name}.`
-            } else {
-                this.battleText = `Les deux héros ont la même vitesse, mais ${this.heroA.name} prend l'avantage !`
-                const dmg = Math.max(1, this.heroAStats.attack - (this.heroBStats.defense / 2))
-                this.heroBCurrentHP = Math.max(0, this.heroBCurrentHP - dmg)
-                this.battleText += ` ${this.heroA.name} inflige ${dmg} points de dégâts à ${this.heroB.name}.`
+            const heroAAttacksFirst = heroASpeed >= heroBSpeed
+            const attack = (attacker, defender, attackerStats, defenderStats, isHeroA) => {
+                const dmg = Math.max(1, attackerStats.attack - (defenderStats.defense / 2))
+                if (isHeroA) {
+                    this.heroBCurrentHP = Math.max(0, this.heroBCurrentHP - dmg)
+                } else {
+                    this.heroACurrentHP = Math.max(0, this.heroACurrentHP - dmg)
+                }
+                this.battleText = `${attacker.name} inflige ${dmg} dégâts à ${defender.name}.`
             }
+
+            if (heroAAttacksFirst) {
+                attack(this.heroA, this.heroB, this.heroAStats, this.heroBStats, true)
+                if (this.checkBattleOutcome()) return
+                attack(this.heroB, this.heroA, this.heroBStats, this.heroAStats, false)
+                this.checkBattleOutcome()
+
+            } else {
+                attack(this.heroB, this.heroA, this.heroBStats, this.heroAStats, false)
+                if (this.checkBattleOutcome()) return
+                attack(this.heroA, this.heroB, this.heroAStats, this.heroBStats, true)
+
+                this.checkBattleOutcome()
+            }
+        },
+        resetBattle() {
+            this.heroA = null
+            this.heroB = null
+            this.heroAStats = null
+            this.heroBStats = null
+            this.heroACurrentHP = null
+            this.heroBCurrentHP = null
+            this.battleText = null
+            this.isBattleDone = false
+            router.push('/select')
+        },
+        checkBattleOutcome() {
+            if (this.heroACurrentHP <= 0) {
+                this.battleText = `${this.heroA.name} n'a plus de points de vie, ${this.heroB.name} gagne !`
+                this.isBattleDone = true
+                return true
+            }
+            if (this.heroBCurrentHP <= 0) {
+                this.battleText = `${this.heroB.name} n'a plus de points de vie, ${this.heroA.name} gagne !`
+                this.isBattleDone = true
+                return true
+            }
+            return false
         }
     }
 

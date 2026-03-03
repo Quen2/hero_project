@@ -14,7 +14,8 @@
     getHeroAStats,
     getHeroBStats,
     getHeroAMaxHP,
-    getHeroBMaxHP
+    getHeroBMaxHP,
+    getIsBattleDone
   } = storeToRefs(battleStore);
   if (getHeroA.value === null || getHeroB.value === null) {
     router.push('/select');
@@ -95,10 +96,17 @@
 
     <div class="text-center mt-8">
       <button
+          v-if="!getIsBattleDone"
           @click="battleStore.startBattle()"
           class="bg-gradient-to-r from-purple-600 to-pink-600 px-8 py-4 rounded-full text-xl font-bold shadow-lg hover:scale-105 transition transform"
       >
         ⚡ Lancer l'attaque
+      </button>
+      <button
+          v-else
+          @click="battleStore.resetBattle()"
+          class="bg-gradient-to-r from-gray-600 to-gray-800 px-8 py-4 rounded-full text-xl font-bold shadow-lg hover:scale-105 transition transform">
+        🔄 Recommencer
       </button>
     </div>
 
