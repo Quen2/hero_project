@@ -28,35 +28,66 @@
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-100 p-8">
-    <div class="max-w-xl mx-auto mb-8 flex gap-3">
+  <div class="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white p-8">
+
+    <!-- Title -->
+    <h1 class="text-4xl font-bold text-center mb-10 tracking-wide">
+      ⚔️ Sélection des combattants ⚔️
+    </h1>
+
+    <!-- Instructions -->
+    <div class="text-center mb-8 text-lg">
+      <span v-if="!getHeroA">Choisissez le premier héros</span>
+      <span v-else-if="!getHeroB">Choisissez le second héros</span>
+      <span v-else>Combat prêt à démarrer 🔥</span>
+    </div>
+
+    <!-- Search -->
+    <div class="max-w-xl mx-auto mb-10 flex gap-3">
       <input
           v-model="name"
           type="text"
           placeholder="Rechercher un héros..."
-          class="flex-1 p-3 rounded-xl border shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+          class="flex-1 p-3 rounded-xl bg-gray-800 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500"
       />
       <button
           @click="heroesStore.findHero(name)"
-          class="bg-blue-500 text-white px-6 py-3 rounded-xl shadow hover:bg-blue-600 transition"
+          class="bg-purple-600 px-6 py-3 rounded-xl hover:bg-purple-700 transition"
       >
         Rechercher
       </button>
     </div>
 
-    <div v-if="loading" class="text-center text-gray-500">
+    <!-- Loading -->
+    <div v-if="loading" class="text-center text-gray-400">
       Chargement...
     </div>
 
-    <div
-        class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"
-    >
+    <!-- Heroes Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+
       <div
           v-for="hero in getFoundHeroes"
           :key="hero.id"
           @click="selectHero(hero)"
-          class="bg-white rounded-2xl shadow-md hover:shadow-xl transition cursor-pointer overflow-hidden"
+          class="relative bg-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition cursor-pointer overflow-hidden border border-gray-700 hover:scale-105 transform"
       >
+        <!-- Badge Hero A -->
+        <div
+            v-if="getHeroA && getHeroA.id === hero.id"
+            class="absolute top-3 left-3 bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-bold"
+        >
+          HERO A
+        </div>
+
+        <!-- Badge Hero B -->
+        <div
+            v-if="getHeroB && getHeroB.id === hero.id"
+            class="absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold"
+        >
+          HERO B
+        </div>
+
         <img
             :src="hero.image.url"
             :alt="hero.name"
@@ -65,60 +96,25 @@
 
         <div class="p-4">
           <h2 class="text-xl font-bold">{{ hero.name }}</h2>
-          <p class="text-sm text-gray-500">
-            {{ hero.biography['full-name'] }}
-          </p>
-          <p class="text-sm text-gray-500">
+          <p class="text-sm text-gray-400">
             {{ hero.biography['publisher'] }}
           </p>
 
-          <div class="mt-3 space-y-1 text-sm">
-            <div>🧠 Intelligence: {{ hero.powerstats.intelligence }}</div>
-            <div>💪 Strength: {{ hero.powerstats.strength }}</div>
-            <div>⚡ Speed: {{ hero.powerstats.speed }}</div>
-            <div>🥊 Combat: {{ hero.powerstats.combat }}</div>
+          <div class="mt-3 text-sm space-y-1">
+            <div>🧠 {{ hero.powerstats.intelligence }}</div>
+            <div>💪 {{ hero.powerstats.strength }}</div>
+            <div>⚡ {{ hero.powerstats.speed }}</div>
+            <div>🥊 {{ hero.powerstats.combat }}</div>
           </div>
         </div>
       </div>
+
     </div>
 
-    <div
-        v-if="getSelectedHero"
-        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
-    >
-      <div class="bg-white rounded-2xl p-6 w-96 shadow-2xl relative">
-        <button
-            class="absolute top-3 right-3 text-gray-500 hover:text-black"
-            @click="heroesStore.selectHero(null)"
-        >
-          ✖
-        </button>
-
-        <img
-            :src="getSelectedHero.image.url"
-            class="w-full h-64 object-cover rounded-xl"
-        />
-
-        <h2 class="text-2xl font-bold mt-4">
-          {{ getSelectedHero.name }}
-        </h2>
-
-        <p class="text-gray-600">
-          {{ getSelectedHero.biography.publisher }}
-        </p>
-
-        <div class="mt-4 text-sm space-y-1">
-          <div>📍 Base: {{ getSelectedHero.work.base }}</div>
-          <div>🧬 Race: {{ getSelectedHero.appearance.race }}</div>
-          <div>⚖ Alignment: {{ getSelectedHero.biography.alignment }}</div>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
 <script>
-  import router from "@/router/index.ts";
 
   export default {
     data() {
