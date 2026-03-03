@@ -1,6 +1,6 @@
 <template>
   <RouterLink to="/">Home</RouterLink>
-  <RouterLink to="/about">About</RouterLink>
+  <RouterLink to="/select">Sélectionner un champion</RouterLink>
 </template>
 
 <script>
