@@ -4,10 +4,14 @@ import axios from "axios";
 export const useHeroesStore = defineStore("heroes", {
     state: () => ({
         foundHeroes: [],
+        errorMsg: null,
     }),
     getters: {
         getFoundHeroes(state) {
             return state.foundHeroes
+        },
+        getErrorMsg(state) {
+            return state.errorMsg
         }
     },
 
@@ -19,7 +23,14 @@ export const useHeroesStore = defineStore("heroes", {
 
             axios.get(`/api/api/${accessToken}/search/${name}`)
                 .then(response => {
-                    this.foundHeroes = response.data.results
+                    if (response.data.response === "error") {
+                        this.foundHeroes = []
+                        this.errorMsg = 'Aucun héros ne contient ce nom.'
+                        return
+                    } else {
+                        this.errorMsg = null
+                        this.foundHeroes = response.data.results
+                    }
                 })
                 .catch(error => {
                     console.error("Error fetching hero data:", error);

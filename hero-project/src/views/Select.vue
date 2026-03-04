@@ -7,7 +7,7 @@
 
   const heroesStore = useHeroesStore();
   const battleStore = useBattleStore();
-  const { getFoundHeroes } = storeToRefs(heroesStore);
+  const { getFoundHeroes, getErrorMsg } = storeToRefs(heroesStore);
   const { getHeroA, getHeroB } = storeToRefs(battleStore);
 
   onMounted(() => {
@@ -29,20 +29,14 @@
 
 <template>
   <div class="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white p-8">
-
-    <!-- Title -->
     <h1 class="text-4xl font-bold text-center mb-10 tracking-wide">
       ⚔️ Sélection des combattants ⚔️
     </h1>
-
-    <!-- Instructions -->
     <div class="text-center mb-8 text-lg">
       <span v-if="!getHeroA">Choisissez le premier héros</span>
       <span v-else-if="!getHeroB">Choisissez le second héros</span>
       <span v-else>Combat prêt à démarrer 🔥</span>
     </div>
-
-    <!-- Search -->
     <div class="max-w-xl mx-auto mb-10 flex gap-3">
       <input
           v-model="name"
@@ -57,66 +51,44 @@
         Rechercher
       </button>
     </div>
-
-    <!-- Loading -->
-    <div v-if="loading" class="text-center text-gray-400">
-      Chargement...
-    </div>
-
-    <!-- Heroes Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-
+    <div
+        class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"
+        v-if="!getErrorMsg"
+    >
       <div
           v-for="hero in getFoundHeroes"
           :key="hero.id"
           @click="selectHero(hero)"
           class="relative bg-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition cursor-pointer overflow-hidden border border-gray-700 hover:scale-105 transform"
       >
-        <!-- Badge Hero A -->
         <div
             v-if="getHeroA && getHeroA.id === hero.id"
             class="absolute top-3 left-3 bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-bold"
         >
           HERO A
         </div>
-
-        <!-- Badge Hero B -->
         <div
             v-if="getHeroB && getHeroB.id === hero.id"
             class="absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold"
         >
           HERO B
         </div>
-
-        <img
-            :src="hero.image.url"
-            :alt="hero.name"
-            class="w-full h-64 object-cover"
-        />
-
-        <div class="p-4">
-          <h2 class="text-xl font-bold">{{ hero.name }}</h2>
-          <p class="text-sm text-gray-400">
-            {{ hero.biography['publisher'] }}
-          </p>
-
-          <div class="mt-3 text-sm space-y-1">
-            <div>🧠 {{ hero.powerstats.intelligence }}</div>
-            <div>💪 {{ hero.powerstats.strength }}</div>
-            <div>⚡ {{ hero.powerstats.speed }}</div>
-            <div>🥊 {{ hero.powerstats.combat }}</div>
-          </div>
-        </div>
+        <HeroCard :hero="hero" />
       </div>
-
     </div>
-
+    <div v-else>
+      <p class="text-center">{{ getErrorMsg }}</p>
+    </div>
   </div>
 </template>
 
 <script>
+  import HeroCard from "@/components/HeroCard.vue";
 
   export default {
+    components: {
+      HeroCard,
+    },
     data() {
       return {
         name: '',
